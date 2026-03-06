@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}TechVault{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#07070d;
+      --s1:#0e0e18;
+      --s2:#13131f;
+      --s3:#1a1a28;
+      --border:#252535;
+      --border2:#303045;
+      --text:#eeeeff;
+      --muted:#6666aa;
+      --faint:#33334a;
+
+      --phone:#ff5e7d;
+      --laptop:#4d9fff;
+      --watch:#ffa94d;
+      --tablet:#a78bfa;
+      --glasses:#34d399;
+      --earbuds:#f472b6;
+      --ring:#facc15;
+      --accent:#c0ff5a;
+    }
+
+    html{scroll-behavior:smooth}
+    body{
+      font-family:'Outfit',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      background-image:
+        radial-gradient(ellipse 800px 500px at 80% -10%, rgba(77,159,255,0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 600px 400px at 10% 90%, rgba(192,255,90,0.04) 0%, transparent 60%);
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:var(--s1)}
+    ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+    /* NAV */
+    nav{
+      position:sticky;top:0;z-index:200;
+      height:60px;
+      background:rgba(7,7,13,0.9);
+      backdrop-filter:blur(24px);
+      border-bottom:1px solid var(--border);
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 2rem;
+    }
+    .brand{
+      font-size:1.25rem;font-weight:900;letter-spacing:-0.03em;
+      color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;
+    }
+    .brand-dot{
+      width:9px;height:9px;border-radius:50%;background:var(--accent);
+      box-shadow:0 0 10px var(--accent);
+      animation:blink 2.5s ease-in-out infinite;
+    }
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .brand em{color:var(--accent);font-style:normal}
+
+    .nav-right{display:flex;align-items:center;gap:.5rem}
+    .nav-link{
+      color:var(--muted);text-decoration:none;font-size:.82rem;font-weight:500;
+      padding:.35rem .75rem;border-radius:7px;transition:.18s;white-space:nowrap;
+    }
+    .nav-link:hover{color:var(--text);background:var(--s3)}
+    .nav-cta{
+      background:var(--accent);color:#07070d !important;
+      font-weight:800;border-radius:8px;
+      padding:.38rem 1rem;font-size:.82rem;
+      transition:.2s;
+    }
+    .nav-cta:hover{background:#aaee44;box-shadow:0 0 18px rgba(192,255,90,.35)}
+
+    /* MAIN */
+    main{max-width:1240px;margin:0 auto;padding:2rem 1.5rem;position:relative}
+
+    /* MESSAGES */
+    .msgs{list-style:none;margin-bottom:1.5rem;display:flex;flex-direction:column;gap:.5rem}
+    .msgs li{
+      padding:.75rem 1.1rem;border-radius:10px;font-size:.875rem;font-weight:500;
+      border:1px solid;animation:fadeDown .3s ease;
+    }
+    @keyframes fadeDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+    .msgs .success{background:rgba(192,255,90,.07);border-color:rgba(192,255,90,.3);color:var(--accent)}
+    .msgs .error  {background:rgba(255,80,100,.07);border-color:rgba(255,80,100,.3);color:#ff6b80}
+
+    /* CATEGORY ICON COLORS */
+    .cat-phone       {color:var(--phone)}
+    .cat-laptop      {color:var(--laptop)}
+    .cat-smartwatch  {color:var(--watch)}
+    .cat-tablet      {color:var(--tablet)}
+    .cat-smartglasses{color:var(--glasses)}
+    .cat-earbuds     {color:var(--earbuds)}
+    .cat-smartring   {color:var(--ring)}
+
+    .badge{
+      display:inline-block;font-size:.68rem;font-weight:700;font-family:'JetBrains Mono',monospace;
+      text-transform:uppercase;letter-spacing:.06em;padding:.22rem .55rem;border-radius:5px;
+    }
+    .badge-phone       {background:rgba(255,94,125,.12);color:var(--phone);border:1px solid rgba(255,94,125,.3)}
+    .badge-laptop      {background:rgba(77,159,255,.12);color:var(--laptop);border:1px solid rgba(77,159,255,.3)}
+    .badge-smartwatch  {background:rgba(255,169,77,.12);color:var(--watch);border:1px solid rgba(255,169,77,.3)}
+    .badge-tablet      {background:rgba(167,139,250,.12);color:var(--tablet);border:1px solid rgba(167,139,250,.3)}
+    .badge-smartglasses{background:rgba(52,211,153,.12);color:var(--glasses);border:1px solid rgba(52,211,153,.3)}
+    .badge-earbuds     {background:rgba(244,114,182,.12);color:var(--earbuds);border:1px solid rgba(244,114,182,.3)}
+    .badge-smartring   {background:rgba(250,204,21,.12);color:var(--ring);border:1px solid rgba(250,204,21,.3)}
+
+    /* FORM CONTROL */
+    .form-control{
+      background:var(--s2) !important;border:1px solid var(--border2) !important;
+      border-radius:9px !important;padding:.6rem .9rem !important;
+      color:var(--text) !important;font-family:'Outfit',sans-serif !important;
+      font-size:.88rem !important;outline:none !important;width:100% !important;
+      transition:border-color .18s !important;
+    }
+    .form-control:focus{border-color:var(--accent) !important;box-shadow:0 0 0 3px rgba(192,255,90,.08) !important}
+    .form-control option{background:var(--s1)}
+    select.form-control{cursor:pointer}
+
+    /* BUTTONS */
+    .btn{
+      display:inline-flex;align-items:center;gap:.4rem;
+      border:none;border-radius:9px;padding:.55rem 1.2rem;
+      font-family:'Outfit',sans-serif;font-weight:700;font-size:.85rem;
+      cursor:pointer;text-decoration:none;transition:.2s;white-space:nowrap;
+    }
+    .btn-primary{background:var(--accent);color:#07070d}
+    .btn-primary:hover{background:#aaee44;box-shadow:0 4px 20px rgba(192,255,90,.3)}
+    .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border2)}
+    .btn-ghost:hover{color:var(--text);border-color:var(--muted)}
+    .btn-danger-outline{background:rgba(255,80,100,.08);color:#ff6b80;border:1px solid rgba(255,80,100,.25)}
+    .btn-danger-outline:hover{background:rgba(255,80,100,.18)}
+    .btn-info{background:rgba(77,159,255,.1);color:var(--laptop);border:1px solid rgba(77,159,255,.25)}
+    .btn-info:hover{background:rgba(77,159,255,.2)}
+    .btn-solid-danger{background:#e03050;color:#fff}
+    .btn-solid-danger:hover{background:#c02040}
+
+    /* PAGE HEADER */
+    .page-header{margin-bottom:1.8rem}
+    .page-header h1{
+      font-size:clamp(1.6rem,4vw,2.4rem);font-weight:900;
+      letter-spacing:-.03em;line-height:1.1;
+    }
+    .page-header p{color:var(--muted);margin-top:.3rem;font-size:.9rem}
+    .back-link{
+      display:inline-flex;align-items:center;gap:.3rem;
+      color:var(--muted);text-decoration:none;font-size:.82rem;
+      margin-bottom:1.2rem;transition:.18s;
+    }
+    .back-link:hover{color:var(--text)}
+
+    @media(max-width:700px){
+      nav{padding:0 1rem}
+      main{padding:1.2rem 1rem}
+      .nav-link.hide-sm{display:none}
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+<nav>
+  <a class="brand" href="/"><div class="brand-dot"></div>Tech<em>Vault</em></a>
+  <div class="nav-right">
+    <a class="nav-link hide-sm" href="/">All</a>
+    <a class="nav-link hide-sm" href="/?category=phone">📱</a>
+    <a class="nav-link hide-sm" href="/?category=laptop">💻</a>
+    <a class="nav-link hide-sm" href="/?category=smartwatch">⌚</a>
+    <a class="nav-link hide-sm" href="/?category=tablet">📟</a>
+    <a class="nav-link hide-sm" href="/?category=earbuds">🎧</a>
+    <a class="nav-link hide-sm" href="/?category=smartring">💍</a>
+    <a class="nav-link" href="/cart/" style="position:relative">
+      🛒 <span id="cartBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--accent);color:#07070d;font-size:.6rem;font-weight:800;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;">0</span>
+    </a>
+    <a class="nav-link nav-cta" href="/upload/">+ Upload</a>
+  </div>
+</nav>
+<main>
+  {% if messages %}
+  <ul class="msgs">
+    {% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

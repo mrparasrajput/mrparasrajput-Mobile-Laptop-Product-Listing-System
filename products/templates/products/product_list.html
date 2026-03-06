@@ -1,0 +1,184 @@
+{% extends 'products/base.html' %}
+{% load dict_filters %}
+{% block title %}TechVault — Product Listings{% endblock %}
+
+{% block head %}
+<style>
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.8rem}
+  @media(max-width:900px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:500px){.stats-grid{grid-template-columns:1fr 1fr}}
+
+  .stat{
+    background:var(--s2);border:1px solid var(--border);border-radius:12px;
+    padding:1rem 1.2rem;transition:border-color .2s;
+  }
+  .stat:hover{border-color:var(--border2)}
+  .stat .lbl{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .stat .val{font-size:1.8rem;font-weight:900;letter-spacing:-.03em;margin-top:.1rem}
+
+  .cat-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem}
+  .cat-tab{
+    padding:.4rem .9rem;border-radius:8px;font-size:.8rem;font-weight:600;
+    text-decoration:none;color:var(--muted);background:var(--s2);
+    border:1px solid var(--border);transition:.18s;
+  }
+  .cat-tab:hover{color:var(--text);border-color:var(--border2)}
+  .cat-tab.active{color:#07070d;background:var(--accent);border-color:transparent}
+
+  .search-row{display:flex;gap:.6rem;margin-bottom:1.8rem;flex-wrap:wrap}
+  .search-wrap{
+    flex:1;min-width:200px;display:flex;align-items:center;gap:.5rem;
+    background:var(--s2);border:1px solid var(--border2);border-radius:9px;
+    padding:0 .9rem;transition:border-color .18s;
+  }
+  .search-wrap:focus-within{border-color:var(--accent)}
+  .search-wrap svg{color:var(--muted);flex-shrink:0}
+  .search-wrap input{
+    background:transparent;border:none;outline:none;
+    color:var(--text);font-family:'Outfit',sans-serif;font-size:.88rem;
+    width:100%;padding:.6rem 0;
+  }
+  .search-wrap input::placeholder{color:var(--faint)}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+
+  .card{
+    background:var(--s2);border:1px solid var(--border);border-radius:14px;
+    overflow:hidden;transition:transform .22s,border-color .22s,box-shadow .22s;
+    display:flex;flex-direction:column;position:relative;
+    animation:cardIn .4s ease both;
+  }
+  @keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .card:hover{transform:translateY(-3px);border-color:var(--border2);box-shadow:0 10px 40px rgba(0,0,0,.4)}
+
+  .card-img{
+    width:100%;height:160px;object-fit:cover;background:var(--s3);
+    display:flex;align-items:center;justify-content:center;font-size:2.8rem;
+  }
+  .card-img img{width:100%;height:100%;object-fit:cover}
+
+  .card-badge{position:absolute;top:10px;left:10px}
+
+  .card-body{padding:.9rem 1.1rem;flex:1;display:flex;flex-direction:column;gap:.3rem}
+  .card-brand{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .card-name{font-size:.95rem;font-weight:700;line-height:1.3}
+  .card-specs{display:flex;flex-wrap:wrap;gap:.3rem;margin:.4rem 0}
+  .spec{
+    background:var(--s3);border:1px solid var(--border);border-radius:5px;
+    font-size:.67rem;color:var(--muted);padding:.15rem .45rem;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .card-price{
+    font-size:1.2rem;font-weight:900;letter-spacing:-.02em;
+    color:var(--accent);margin-top:auto;padding-top:.3rem;
+  }
+
+  .card-footer{
+    display:flex;gap:.4rem;padding:.7rem 1.1rem;
+    border-top:1px solid var(--border);background:rgba(255,255,255,.01);
+  }
+  .card-footer a{
+    flex:1;text-align:center;text-decoration:none;font-size:.75rem;font-weight:700;
+    padding:.38rem;border-radius:7px;transition:.18s;
+  }
+  .cf-view{background:var(--s3);color:var(--muted);border:1px solid var(--border)}
+  .cf-view:hover{color:var(--text)}
+  .cf-edit{background:rgba(77,159,255,.1);color:var(--laptop);border:1px solid rgba(77,159,255,.2)}
+  .cf-edit:hover{background:rgba(77,159,255,.2)}
+  .cf-del{background:rgba(255,80,100,.07);color:#ff6b80;border:1px solid rgba(255,80,100,.18)}
+  .cf-del:hover{background:rgba(255,80,100,.18)}
+
+  .empty{text-align:center;padding:5rem 1rem;color:var(--muted)}
+  .empty .icon{font-size:3.5rem;margin-bottom:1rem}
+  .empty h3{color:var(--text);font-size:1.2rem;margin-bottom:.4rem}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Product <span style="color:var(--accent)">Listings</span></h1>
+  <p>Manage your tech inventory across all categories</p>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat"><div class="lbl">Total</div><div class="val" style="color:var(--accent)">{{ total }}</div></div>
+  {% for cat in categories %}
+  <div class="stat">
+    <div class="lbl">{{ cat.1 }}</div>
+    <div class="val cat-{{ cat.0 }}">{{ cat_counts|get_item:cat.0 }}</div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Category tabs -->
+<div class="cat-tabs">
+  <a class="cat-tab {% if not selected_category %}active{% endif %}" href="/">All</a>
+  {% for cat in categories %}
+  <a class="cat-tab {% if selected_category == cat.0 %}active{% endif %}" href="/?category={{ cat.0 }}">{{ cat.1 }}</a>
+  {% endfor %}
+</div>
+
+<!-- Search -->
+<form method="GET">
+  {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+  <div class="search-row">
+    <div class="search-wrap">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" name="q" value="{{ query }}" placeholder="Search name, brand, model…"/>
+    </div>
+    <button type="submit" class="btn btn-ghost">Search</button>
+    {% if query %}<a href="/?{% if selected_category %}category={{ selected_category }}{% endif %}" class="btn btn-ghost">✕ Clear</a>{% endif %}
+  </div>
+</form>
+
+<!-- Grid -->
+{% if products %}
+<div class="grid">
+  {% for p in products %}
+  <div class="card">
+    <div class="card-img">
+      {% if p.image %}<img src="{{ p.image.url }}" alt="{{ p.name }}">
+      {% elif p.category == 'phone' %}📱
+      {% elif p.category == 'laptop' %}💻
+      {% elif p.category == 'smartwatch' %}⌚
+      {% elif p.category == 'tablet' %}📟
+      {% elif p.category == 'smartglasses' %}🥽
+      {% elif p.category == 'earbuds' %}🎧
+      {% elif p.category == 'smartring' %}💍
+      {% endif %}
+    </div>
+    <span class="card-badge badge badge-{{ p.category }}">{{ p.get_category_display }}</span>
+    <div class="card-body">
+      <div class="card-brand">{{ p.brand }}</div>
+      <div class="card-name">{{ p.name }}</div>
+      <div class="card-specs">
+        {% if p.ram %}<span class="spec">{{ p.ram }}</span>{% endif %}
+        {% if p.storage %}<span class="spec">{{ p.storage }}</span>{% endif %}
+        {% if p.os %}<span class="spec">{{ p.os|truncatechars:16 }}</span>{% endif %}
+        <span class="spec">{{ p.get_condition_display }}</span>
+        <span class="spec">×{{ p.stock }}</span>
+      </div>
+      <div class="card-price">₹{{ p.price }}</div>
+    </div>
+    <div class="card-footer">
+      <a href="/product/{{ p.pk }}/" class="cf-view">View</a>
+      <form method="POST" action="/cart/add/{{ p.pk }}/" style="flex:1;display:flex">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="product_list">
+        <button type="submit" style="flex:1;background:rgba(192,255,90,.1);color:var(--accent);border:1px solid rgba(192,255,90,.2);border-radius:7px;font-size:.75rem;font-weight:700;cursor:pointer;transition:.18s;font-family:'Outfit',sans-serif" onmouseover="this.style.background='rgba(192,255,90,.2)'" onmouseout="this.style.background='rgba(192,255,90,.1)'">🛒 Cart</button>
+      </form>
+      <a href="/buy-now/{{ p.pk }}/" class="cf-edit">Buy Now</a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <div class="icon">📭</div>
+  <h3>No products found</h3>
+  <p>{% if query %}Nothing matched "{{ query }}"{% else %}Upload your first product to get started.{% endif %}</p>
+  <a href="/upload/" class="btn btn-primary" style="margin-top:1.2rem">+ Upload Product</a>
+</div>
+{% endif %}
+{% endblock %}

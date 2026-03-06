@@ -1,0 +1,97 @@
+{% extends 'products/base.html' %}
+{% block title %}Cart — TechVault{% endblock %}
+{% block head %}
+<style>
+.cart-wrap{max-width:900px;margin:0 auto}
+.cart-table{width:100%;border-collapse:collapse}
+.cart-table th{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:.6rem 0;border-bottom:1px solid var(--border);text-align:left}
+.cart-table td{padding:.9rem 0;border-bottom:1px solid var(--border);vertical-align:middle}
+.cart-img{width:52px;height:52px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0}
+.cart-img img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.prod-info{display:flex;align-items:center;gap:.9rem}
+.qty-input{background:var(--s2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Outfit',sans-serif;font-size:.88rem;padding:.35rem .6rem;width:60px;text-align:center}
+.cart-summary{background:var(--s2);border:1px solid var(--border2);border-radius:14px;padding:1.5rem;margin-top:1.5rem}
+.summary-row{display:flex;justify-content:space-between;padding:.5rem 0;font-size:.9rem;border-bottom:1px solid var(--border)}
+.summary-row:last-child{border:none;font-size:1.1rem;font-weight:800;color:var(--accent)}
+.empty-cart{text-align:center;padding:5rem 1rem;color:var(--muted)}
+.empty-cart .icon{font-size:4rem;margin-bottom:1rem}
+</style>
+{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/">← Continue Shopping</a>
+<div class="page-header">
+  <h1>Your <span style="color:var(--accent)">Cart</span></h1>
+</div>
+
+<div class="cart-wrap">
+{% if cart.items.all %}
+  <table class="cart-table">
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Price</th>
+        <th>Qty</th>
+        <th>Subtotal</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in cart.items.all %}
+      <tr>
+        <td>
+          <div class="prod-info">
+            <div class="cart-img">
+              {% if item.product.image %}<img src="{{ item.product.image.url }}" alt="">
+              {% elif item.product.category == 'phone' %}📱
+              {% elif item.product.category == 'laptop' %}💻
+              {% elif item.product.category == 'smartwatch' %}⌚
+              {% elif item.product.category == 'tablet' %}📟
+              {% elif item.product.category == 'smartglasses' %}🥽
+              {% elif item.product.category == 'earbuds' %}🎧
+              {% elif item.product.category == 'smartring' %}💍{% endif %}
+            </div>
+            <div>
+              <div style="font-weight:700;font-size:.9rem">{{ item.product.name }}</div>
+              <div style="color:var(--muted);font-size:.75rem">{{ item.product.brand }}</div>
+            </div>
+          </div>
+        </td>
+        <td style="color:var(--accent);font-weight:700">₹{{ item.product.price }}</td>
+        <td>
+          <form method="POST" action="/cart/update/{{ item.product.pk }}/" style="display:inline">
+            {% csrf_token %}
+            <input class="qty-input" type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" onchange="this.form.submit()">
+          </form>
+        </td>
+        <td style="font-weight:700">₹{{ item.get_subtotal }}</td>
+        <td>
+          <a href="/cart/remove/{{ item.product.pk }}/" class="btn btn-danger-outline" style="font-size:.75rem;padding:.3rem .7rem">✕</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="cart-summary">
+    <div class="summary-row"><span>Items ({{ cart.get_total_items }})</span><span>₹{{ cart.get_total }}</span></div>
+    <div class="summary-row"><span>Delivery</span><span style="color:var(--accent)">FREE</span></div>
+    <div class="summary-row"><span>Payment</span><span>Cash on Delivery</span></div>
+    <div class="summary-row"><span>Total</span><span>₹{{ cart.get_total }}</span></div>
+  </div>
+
+  <div style="display:flex;gap:1rem;margin-top:1.5rem;justify-content:flex-end">
+    <a href="/" class="btn btn-ghost">← Shop More</a>
+    <a href="/checkout/" class="btn btn-primary" style="font-size:1rem;padding:.7rem 2rem">Proceed to Checkout →</a>
+  </div>
+
+{% else %}
+<div class="empty-cart">
+  <div class="icon">🛒</div>
+  <h3 style="color:var(--text);font-size:1.3rem;margin-bottom:.5rem">Your cart is empty</h3>
+  <p>Add some products to get started!</p>
+  <a href="/" class="btn btn-primary" style="margin-top:1.2rem">Browse Products</a>
+</div>
+{% endif %}
+</div>
+{% endblock %}

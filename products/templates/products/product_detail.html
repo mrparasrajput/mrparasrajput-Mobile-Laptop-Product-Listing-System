@@ -1,0 +1,71 @@
+{% extends 'products/base.html' %}
+{% block title %}{{ product.name }} — TechVault{% endblock %}
+{% block head %}
+<style>
+.detail-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:2rem;align-items:start}
+.det-img{
+  border-radius:14px;overflow:hidden;border:1px solid var(--border2);
+  background:var(--s2);aspect-ratio:4/3;
+  display:flex;align-items:center;justify-content:center;font-size:5rem;
+}
+.det-img img{width:100%;height:100%;object-fit:cover}
+.det-price{font-size:2rem;font-weight:900;color:var(--accent);letter-spacing:-.03em;margin:.5rem 0 1.2rem}
+.spec-tbl{width:100%;border-collapse:collapse;font-size:.875rem}
+.spec-tbl tr{border-bottom:1px solid var(--border)}
+.spec-tbl tr:last-child{border:none}
+.spec-tbl td{padding:.55rem 0}
+.spec-tbl td:first-child{color:var(--muted);width:42%}
+.spec-tbl td:last-child{font-weight:600}
+@media(max-width:700px){.detail-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+{% block content %}
+<a class="back-link" href="/">← Back to Listings</a>
+<div class="detail-grid">
+  <div class="det-img">
+    {% if product.image %}<img src="{{ product.image.url }}" alt="{{ product.name }}">
+    {% elif product.category == 'phone' %}📱
+    {% elif product.category == 'laptop' %}💻
+    {% elif product.category == 'smartwatch' %}⌚
+    {% elif product.category == 'tablet' %}📟
+    {% elif product.category == 'smartglasses' %}🥽
+    {% elif product.category == 'earbuds' %}🎧
+    {% elif product.category == 'smartring' %}💍{% endif %}
+  </div>
+  <div>
+    <span class="badge badge-{{ product.category }}">{{ product.get_category_display }}</span>
+    <h1 style="font-size:1.7rem;font-weight:900;letter-spacing:-.03em;margin-top:.5rem;line-height:1.2">{{ product.brand }} {{ product.name }}</h1>
+    {% if product.model_number %}<p style="color:var(--muted);font-size:.8rem;margin-top:.2rem">Model: {{ product.model_number }}</p>{% endif %}
+    <div class="det-price">₹{{ product.price }}</div>
+    <table class="spec-tbl">
+      <tr><td>Condition</td><td>{{ product.get_condition_display }}</td></tr>
+      <tr><td>Stock</td><td>{{ product.stock }} unit{% if product.stock != 1 %}s{% endif %}</td></tr>
+      {% if product.processor %}<tr><td>Processor</td><td>{{ product.processor }}</td></tr>{% endif %}
+      {% if product.ram %}<tr><td>RAM</td><td>{{ product.ram }}</td></tr>{% endif %}
+      {% if product.storage %}<tr><td>Storage</td><td>{{ product.storage }}</td></tr>{% endif %}
+      {% if product.display %}<tr><td>Display</td><td>{{ product.display }}</td></tr>{% endif %}
+      {% if product.battery %}<tr><td>Battery</td><td>{{ product.battery }}</td></tr>{% endif %}
+      {% if product.camera %}<tr><td>Camera</td><td>{{ product.camera }}</td></tr>{% endif %}
+      {% if product.os %}<tr><td>OS</td><td>{{ product.os }}</td></tr>{% endif %}
+      {% if product.connectivity %}<tr><td>Connectivity</td><td>{{ product.connectivity }}</td></tr>{% endif %}
+      <tr><td>Added</td><td>{{ product.created_at|date:"d M Y" }}</td></tr>
+    </table>
+    {% if product.description %}
+    <div style="margin-top:1.2rem;background:var(--s3);border:1px solid var(--border);border-radius:10px;padding:1rem">
+      <p style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.4rem">Description</p>
+      <p style="font-size:.88rem;line-height:1.65">{{ product.description }}</p>
+    </div>
+    {% endif %}
+    <div style="display:flex;gap:.6rem;margin-top:1.4rem;flex-wrap:wrap">
+      <form method="POST" action="/cart/add/{{ product.pk }}/">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="product_detail">
+        <button type="submit" class="btn btn-ghost">🛒 Add to Cart</button>
+      </form>
+      <a href="/buy-now/{{ product.pk }}/" class="btn btn-primary">⚡ Buy Now</a>
+      <a href="/edit/{{ product.pk }}/" class="btn btn-info">✏️ Edit</a>
+      <a href="/delete/{{ product.pk }}/" class="btn btn-danger-outline">🗑 Delete</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

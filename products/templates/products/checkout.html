@@ -1,0 +1,78 @@
+{% extends 'products/base.html' %}
+{% block title %}Checkout — TechVault{% endblock %}
+{% block head %}
+<style>
+.checkout-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:2rem;align-items:start}
+.form-card{background:var(--s2);border:1px solid var(--border2);border-radius:16px;padding:1.8rem}
+.section-label{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:.5rem;margin-bottom:1rem}
+.fgroup{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.9rem}
+.fgroup label{font-size:.78rem;font-weight:600;color:var(--muted)}
+.order-card{background:var(--s2);border:1px solid var(--border2);border-radius:16px;padding:1.5rem;position:sticky;top:80px}
+.order-item{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border);font-size:.85rem}
+.order-item:last-of-type{border:none}
+.cod-badge{background:rgba(192,255,90,.1);border:1px solid rgba(192,255,90,.3);border-radius:10px;padding:.8rem 1rem;display:flex;align-items:center;gap:.6rem;margin-top:1rem;font-size:.85rem;color:var(--accent)}
+@media(max-width:700px){.checkout-grid{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/cart/">← Back to Cart</a>
+<div class="page-header">
+  <h1>Checkout</h1>
+  <p>Cash on Delivery — Pay when your order arrives</p>
+</div>
+
+<div class="checkout-grid">
+  <!-- Form -->
+  <div class="form-card">
+    <div class="section-label">Delivery Details</div>
+    <form method="POST">
+      {% csrf_token %}
+      <div class="fgroup"><label>Full Name *</label>{{ form.full_name }}</div>
+      <div class="fgroup"><label>Phone Number *</label>{{ form.phone }}</div>
+      <div class="fgroup"><label>Email (Optional)</label>{{ form.email }}</div>
+      <div class="fgroup"><label>Delivery Address *</label>{{ form.address }}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.9rem">
+        <div class="fgroup"><label>City *</label>{{ form.city }}</div>
+        <div class="fgroup"><label>PIN Code *</label>{{ form.pincode }}</div>
+      </div>
+
+      {% if form.errors %}
+      <div style="background:rgba(255,80,100,.07);border:1px solid rgba(255,80,100,.25);border-radius:10px;padding:.9rem;font-size:.82rem;color:#ff6b80;margin-bottom:1rem">
+        {% for field in form %}{% for e in field.errors %}<div>• {{ field.label }}: {{ e }}</div>{% endfor %}{% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="cod-badge">
+        💵 Payment: <strong>Cash on Delivery</strong> — Pay when you receive your order
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:1.2rem;font-size:1rem;padding:.75rem">
+        Place Order →
+      </button>
+    </form>
+  </div>
+
+  <!-- Order Summary -->
+  <div class="order-card">
+    <div class="section-label">Order Summary</div>
+    {% for item in cart.items.all %}
+    <div class="order-item">
+      <div>
+        <div style="font-weight:700">{{ item.product.name }}</div>
+        <div style="color:var(--muted);font-size:.75rem">{{ item.product.brand }} × {{ item.quantity }}</div>
+      </div>
+      <div style="font-weight:700;color:var(--accent)">₹{{ item.get_subtotal }}</div>
+    </div>
+    {% endfor %}
+    <div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:.8rem;border-top:1px solid var(--border)">
+      <span style="font-size:.85rem;color:var(--muted)">Delivery</span>
+      <span style="color:var(--accent);font-weight:700">FREE</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:.5rem">
+      <span style="font-weight:800;font-size:1rem">Total</span>
+      <span style="font-weight:900;font-size:1.2rem;color:var(--accent)">₹{{ cart.get_total }}</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

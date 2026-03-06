@@ -1,0 +1,263 @@
+{% extends 'products/base.html' %}
+{% block title %}{{ action }} Product — TechVault{% endblock %}
+
+{% block head %}
+<style>
+  .form-wrap{max-width:740px;margin:0 auto}
+  .form-card{
+    background:var(--s2);border:1px solid var(--border2);
+    border-radius:18px;padding:2rem 2.2rem;
+  }
+  .section-label{
+    font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+    color:var(--muted);border-bottom:1px solid var(--border);padding-bottom:.5rem;
+    margin:1.6rem 0 1rem;
+  }
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+  .form-grid .full{grid-column:1/-1}
+  .fgroup{display:flex;flex-direction:column;gap:.4rem}
+  label{font-size:.78rem;font-weight:600;color:var(--muted)}
+
+  /* Cascading dropdown state hints */
+  .dropdown-state{
+    font-size:.72rem;color:var(--muted);margin-top:.25rem;
+    display:flex;align-items:center;gap:.3rem;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .dropdown-state.ready{color:var(--accent)}
+  .dropdown-state.loading{color:var(--watch)}
+
+  /* Toggle switch for custom name */
+  .toggle-row{
+    display:flex;align-items:center;gap:.7rem;margin-bottom:.5rem;
+  }
+  .toggle-switch{
+    position:relative;width:36px;height:20px;flex-shrink:0;
+  }
+  .toggle-switch input{opacity:0;width:0;height:0}
+  .toggle-track{
+    position:absolute;inset:0;background:var(--s3);border:1px solid var(--border2);
+    border-radius:20px;cursor:pointer;transition:.2s;
+  }
+  .toggle-track::after{
+    content:'';position:absolute;width:14px;height:14px;border-radius:50%;
+    background:var(--muted);top:2px;left:2px;transition:.2s;
+  }
+  input:checked + .toggle-track{background:rgba(192,255,90,.2);border-color:var(--accent)}
+  input:checked + .toggle-track::after{background:var(--accent);transform:translateX(16px)}
+  .toggle-label{font-size:.8rem;font-weight:600;color:var(--muted)}
+
+  /* form actions */
+  .form-actions{display:flex;gap:.75rem;margin-top:1.8rem;align-items:center}
+
+  /* error box */
+  .err-box{
+    background:rgba(255,80,100,.07);border:1px solid rgba(255,80,100,.25);
+    border-radius:10px;padding:.9rem 1.1rem;margin-top:1rem;
+    font-size:.82rem;color:#ff6b80;
+  }
+
+  @media(max-width:600px){.form-grid{grid-template-columns:1fr}.form-card{padding:1.3rem 1.1rem}}
+</style>
+{% endblock %}
+
+{% block content %}
+<a class="back-link" href="/">← Back to Listings</a>
+
+<div class="page-header">
+  <h1>{{ action }} <span style="color:var(--accent)">Product</span></h1>
+  <p>{% if action == 'Upload' %}Add a new device to the TechVault inventory.{% else %}Modify the product details below.{% endif %}</p>
+</div>
+
+<div class="form-wrap">
+<div class="form-card">
+<form method="POST" enctype="multipart/form-data" id="productForm">
+{% csrf_token %}
+
+<!-- ── SECTION 1 — Identity ── -->
+<div class="section-label">Product Identity</div>
+<div class="form-grid">
+
+  <div class="fgroup">
+    <label for="id_category">Category *</label>
+    {{ form.category }}
+  </div>
+
+  <div class="fgroup">
+    <label for="id_brand">Brand *</label>
+    <select class="form-control" id="id_brand" name="brand" required>
+      <option value="">— Select category first —</option>
+      {% if form.instance.pk %}
+      <option value="{{ form.instance.brand }}" selected>{{ form.instance.brand }}</option>
+      {% endif %}
+    </select>
+    <span class="dropdown-state" id="brandHint">Choose a category to load brands</span>
+  </div>
+
+  <div class="fgroup full">
+    <label>Product Name *</label>
+    <div class="toggle-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="customToggle">
+        <span class="toggle-track"></span>
+      </label>
+      <span class="toggle-label" id="toggleLabel">Use dropdown list</span>
+    </div>
+
+    <!-- Dropdown mode -->
+    <div id="nameDropdownWrap">
+      <select class="form-control" id="id_name" name="name">
+        <option value="">— Select brand first —</option>
+        {% if form.instance.pk %}
+        <option value="{{ form.instance.name }}" selected>{{ form.instance.name }}</option>
+        {% endif %}
+      </select>
+      <span class="dropdown-state" id="nameHint">Choose a brand to load products</span>
+    </div>
+
+    <!-- Custom input mode (hidden by default) -->
+    <div id="nameCustomWrap" style="display:none">
+      <input class="form-control" type="text" id="id_custom_name" name="custom_name"
+             placeholder="Type exact product name…"
+             value="{{ form.custom_name.value|default:'' }}">
+    </div>
+  </div>
+
+  <div class="fgroup">
+    <label for="id_model_number">Model Number</label>
+    {{ form.model_number }}
+  </div>
+
+  <div class="fgroup">
+    <label for="id_condition">Condition *</label>
+    {{ form.condition }}
+  </div>
+
+  <div class="fgroup">
+    <label for="id_price">Price (₹) *</label>
+    {{ form.price }}
+  </div>
+
+  <div class="fgroup">
+    <label for="id_stock">Stock Quantity *</label>
+    {{ form.stock }}
+  </div>
+
+</div>
+
+<!-- ── SECTION 2 — Specs ── -->
+<div class="section-label">Specifications</div>
+<div class="form-grid">
+  <div class="fgroup"><label>Processor</label>{{ form.processor }}</div>
+  <div class="fgroup"><label>RAM</label>{{ form.ram }}</div>
+  <div class="fgroup"><label>Storage</label>{{ form.storage }}</div>
+  <div class="fgroup"><label>Display</label>{{ form.display }}</div>
+  <div class="fgroup"><label>Battery</label>{{ form.battery }}</div>
+  <div class="fgroup"><label>Camera</label>{{ form.camera }}</div>
+  <div class="fgroup"><label>Operating System</label>{{ form.os }}</div>
+  <div class="fgroup"><label>Connectivity</label>{{ form.connectivity }}</div>
+</div>
+
+<!-- ── SECTION 3 — Extra ── -->
+<div class="section-label">Additional Details</div>
+<div class="form-grid">
+  <div class="fgroup full"><label>Description</label>{{ form.description }}</div>
+  <div class="fgroup full"><label>Product Image</label>{{ form.image }}</div>
+</div>
+
+{% if form.errors %}
+<div class="err-box">
+  <strong>Please fix the following:</strong>
+  {% for field in form %}{% for e in field.errors %}<div>• {{ field.label }}: {{ e }}</div>{% endfor %}{% endfor %}
+  {% for e in form.non_field_errors %}<div>• {{ e }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<div class="form-actions">
+  <button type="submit" class="btn btn-primary">{{ action }} Product</button>
+  <a href="/" class="btn btn-ghost">Cancel</a>
+</div>
+
+</form>
+</div>
+</div>
+
+<script>
+// ── Data from Django models (injected) ────────────────────────────────────
+const BRANDS_BY_CAT = {{ brands_json|safe }};
+const PRODUCTS_BY_BC = {{ products_json|safe }};
+
+const catSel    = document.getElementById('id_category');
+const brandSel  = document.getElementById('id_brand');
+const nameSel   = document.getElementById('id_name');
+const customIn  = document.getElementById('id_custom_name');
+const brandHint = document.getElementById('brandHint');
+const nameHint  = document.getElementById('nameHint');
+const toggle    = document.getElementById('customToggle');
+const toggleLbl = document.getElementById('toggleLabel');
+const dropWrap  = document.getElementById('nameDropdownWrap');
+const custWrap  = document.getElementById('nameCustomWrap');
+
+// Existing values when editing
+const existingBrand = "{{ form.instance.brand|default:'' }}";
+const existingName  = "{{ form.instance.name|default:'' }}";
+
+function populateBrands(cat) {
+  const brands = BRANDS_BY_CAT[cat] || [];
+  brandSel.innerHTML = '<option value="">— Select brand —</option>';
+  brands.forEach(b => {
+    const o = document.createElement('option');
+    o.value = b; o.textContent = b;
+    if (b === existingBrand) o.selected = true;
+    brandSel.appendChild(o);
+  });
+  brandHint.textContent = brands.length ? `${brands.length} brands available` : 'No brands for this category';
+  brandHint.className = 'dropdown-state ' + (brands.length ? 'ready' : '');
+  if (existingBrand) populateProducts(cat, existingBrand);
+}
+
+function populateProducts(cat, brand) {
+  const key = `${cat}::${brand}`;
+  const prods = PRODUCTS_BY_BC[key] || [];
+  nameSel.innerHTML = '<option value="">— Select product —</option>';
+  prods.forEach(p => {
+    const o = document.createElement('option');
+    o.value = p; o.textContent = p;
+    if (p === existingName) o.selected = true;
+    nameSel.appendChild(o);
+  });
+  nameHint.textContent = prods.length ? `${prods.length} products available` : 'No preset products — use custom name';
+  nameHint.className = 'dropdown-state ' + (prods.length ? 'ready' : '');
+}
+
+catSel.addEventListener('change', function() {
+  populateBrands(this.value);
+  nameSel.innerHTML = '<option value="">— Select brand first —</option>';
+  nameHint.textContent = 'Choose a brand to load products';
+  nameHint.className = 'dropdown-state';
+});
+
+brandSel.addEventListener('change', function() {
+  populateProducts(catSel.value, this.value);
+});
+
+toggle.addEventListener('change', function() {
+  if (this.checked) {
+    dropWrap.style.display = 'none';
+    custWrap.style.display = 'block';
+    nameSel.removeAttribute('name');
+    customIn.setAttribute('name','custom_name');
+    toggleLbl.textContent = 'Type custom name';
+  } else {
+    dropWrap.style.display = 'block';
+    custWrap.style.display = 'none';
+    nameSel.setAttribute('name','name');
+    customIn.removeAttribute('name');
+    toggleLbl.textContent = 'Use dropdown list';
+  }
+});
+
+// Init on page load (edit mode)
+if (catSel.value) populateBrands(catSel.value);
+</script>
+{% endblock %}
